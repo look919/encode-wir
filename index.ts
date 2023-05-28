@@ -1,24 +1,21 @@
 import dotenv from "dotenv";
-import {
-  getSplitterByMessageLength,
-  indexNotFound,
-  mapForbiddenChars,
-  shuffleArray,
-} from "./utils";
+import { indexNotFound, mapForbiddenChars, shuffleArray } from "./utils";
 
 dotenv.config();
 
+const splitter = " ";
 // prettier-ignore
 export const codesArray = [
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 
-    'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-    's', 't', 'u', 'v', 'w', 'x', 'y', 'z', ' ',
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', 
-    '9', '.', ',', ';', ':', '-', "'", '\n',')',
-    '!', '@', '#', '$', '%', '^', '&', '*', '(', 
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
-    'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
-    'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '?'
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+    'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z', 'ą', 'ć', 'ę', 'ł',
+    'ó', 'ś', 'ż', 'ź', ' ', '.', ',', ';', ':', '\n',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+    ')', '!', '@', '#', '$', '%', '^', '&', '*', '(', 
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
+    'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 
+    'U', 'V', 'W', 'X', 'Y', 'Z', 'Ą', 'Ć', 'Ę', 'Ł',
+    'Ó', 'Ś', 'Ż', 'Ź', '?', "'", '"', '-', '<', '>', 
 ]
 
 if (!process.env.ENCODED_ARRAY) {
@@ -32,7 +29,7 @@ if (secretKey >= 1000 || secretKey < 0) {
   throw new Error("SECRET_KEY must be in 0-999 range");
 }
 
-const initialShuffle = Math.abs(80 - (secretKey % 100));
+const initialShuffle = Math.abs(99 - (secretKey % 100));
 const iterationShuffle = Math.floor(secretKey / 100);
 
 const encodedArray =
@@ -40,7 +37,6 @@ const encodedArray =
 
 const codeMessage = (message: string) => {
   let shuffledArray = shuffleArray(encodedArray, initialShuffle);
-  const splitter = getSplitterByMessageLength(message.length);
 
   const encodedMessage = message.split("").map((char) => {
     const index = codesArray.indexOf(char);
@@ -61,10 +57,7 @@ const codeMessage = (message: string) => {
 };
 
 const decodeMessage = (message: string) => {
-  const splitter = getSplitterByMessageLength(message.length);
   let shuffledArray = shuffleArray(encodedArray, initialShuffle);
-  let shuffleCounter = 0;
-  let amountOfShuffles = 0;
 
   const decodedMessage = message.split("").map((char) => {
     const index = shuffledArray.indexOf(char);
@@ -77,17 +70,6 @@ const decodeMessage = (message: string) => {
 
     if (decodedChar === splitter) {
       shuffledArray = shuffleArray(shuffledArray, iterationShuffle);
-
-      if (shuffleCounter + iterationShuffle > 80) {
-        shuffleCounter = shuffleCounter + iterationShuffle - 80;
-      } else {
-        shuffleCounter = shuffleCounter + iterationShuffle;
-      }
-      amountOfShuffles++;
-      decodedChar =
-        codesArray[
-          Math.abs(index - shuffleCounter + iterationShuffle * amountOfShuffles)
-        ];
     }
 
     return decodedChar;
@@ -96,8 +78,14 @@ const decodeMessage = (message: string) => {
   return decodedMessage.join("");
 };
 
-// const test = "Ala ma kota";
-// const test =
-//   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam tincidunt, neque eu posuere pretium, urna augue interdum enim, sed vehicula eros nisi eget lacus. Donec vitae tellus placerat, accumsan nisi ut, malesuada ex. Suspendisse aliquet, tellus eget elementum mollis, orci urna semper ex, eu viverra est libero quis elit. Donec ut tellus quis libero posuere bibendum. Pellentesque semper maximus sagittis. Donec elementum, arcu et pulvinar hendrerit, ex lectus pulvinar turpis, non posuere orci purus et mauris. Proin maximus ex vel rhoncus viverra. Nullam nec ligula porta, venenatis leo id, dapibus nisi";
+// const test = "T T T T";
+const test =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam tincidunt, neque eu posuere pretium, urna augue interdum enim, sed vehicula eros nisi eget lacus. Donec vitae tellus placerat, accumsan nisi ut, malesuada ex. Suspendisse aliquet, tellus eget elementum mollis, orci urna semper ex, eu viverra est libero quis elit. Donec ut tellus quis libero posuere bibendum. Pellentesque semper maximus sagittis. Donec elementum, arcu et pulvinar hendrerit, ex lectus pulvinar turpis, non posuere orci purus et mauris. Proin maximus ex vel rhoncus viverra. Nullam nec ligula porta, venenatis leo id, dapibus nisi";
 
-// const codedTest = codeMessage(test);
+const codedTest = codeMessage(test);
+
+console.log(
+  codedTest,
+  decodeMessage(codedTest),
+  decodeMessage(codedTest) === test
+);

@@ -6,18 +6,11 @@ export const mapForbiddenChars = (char: string) => {
     return "'";
   }
 
+  if (char === "quote") {
+    return '"';
+  }
+
   return char;
-};
-
-export const getSplitterByMessageLength = (messageLength: number) => {
-  if (messageLength < 100) {
-    return " ";
-  }
-  if (messageLength < 1000) {
-    return ".";
-  }
-
-  return "\n";
 };
 
 export const indexNotFound = (index: number) => index === -1;
