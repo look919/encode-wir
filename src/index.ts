@@ -16,7 +16,7 @@ export const codesArray = [
 ]
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
-type MaxThreeDigitsNumber = `${Digit}${Digit}${Digit}`;
+type OneTimeKey = `${Digit}${Digit}${Digit}`;
 
 export class EncryptionMachine {
   private codesArray: string[] = [];
@@ -30,7 +30,7 @@ export class EncryptionMachine {
     this.encodedArray = privateArrCodes.map(mapForbiddenChars);
   }
 
-  private getShuffles(oneTimeKey: MaxThreeDigitsNumber): [number, number] {
+  private getShuffles(oneTimeKey: OneTimeKey): [number, number] {
     let parsedKey = parseInt(oneTimeKey);
     if (isNaN(parsedKey) || oneTimeKey.length > 3) {
       throw new Error("oneTimeKey must be a number in 0-999 range");
@@ -43,7 +43,7 @@ export class EncryptionMachine {
     return [initialShuffle, iterationShuffle];
   }
 
-  public encodeMessage(oneTimeKey: MaxThreeDigitsNumber, message: string) {
+  public encodeMessage(oneTimeKey: OneTimeKey, message: string) {
     const [initialShuffle, iterationShuffle] = this.getShuffles(oneTimeKey);
     let shuffledArray = shuffleArray(this.encodedArray, initialShuffle);
 
@@ -65,7 +65,7 @@ export class EncryptionMachine {
     return encodedMessage.join("");
   }
 
-  public decodeMessage(oneTimeKey: MaxThreeDigitsNumber, message: string) {
+  public decodeMessage(oneTimeKey: OneTimeKey, message: string) {
     const [initialShuffle, iterationShuffle] = this.getShuffles(oneTimeKey);
     let shuffledArray = shuffleArray(this.encodedArray, initialShuffle);
 
