@@ -1,7 +1,4 @@
-import dotenv from "dotenv";
 import { indexNotFound, mapForbiddenChars, shuffleArray } from "./utils";
-
-dotenv.config();
 
 const splitter = " ";
 // prettier-ignore
@@ -18,74 +15,78 @@ export const codesArray = [
     'Ó', 'Ś', 'Ż', 'Ź', '?', "'", '"', '-', '<', '>', 
 ]
 
-if (!process.env.ENCODED_ARRAY) {
-  throw new Error("ENCODED_ARRAY is not defined");
+type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+type MaxThreeDigitsNumber = `${Digit}${Digit}${Digit}`;
+
+export class EncryptionMachine {
+  private codesArray: string[] = [];
+  private encodedArray: string[] = [];
+
+  constructor(
+    privateArrCodes: string[],
+    publicArrayCodes: string[] = codesArray
+  ) {
+    this.codesArray = publicArrayCodes;
+    this.encodedArray = privateArrCodes.map(mapForbiddenChars);
+  }
+
+  private getShuffles(oneTimeKey: MaxThreeDigitsNumber): [number, number] {
+    let parsedKey = parseInt(oneTimeKey);
+    if (isNaN(parsedKey) || oneTimeKey.length > 3) {
+      throw new Error("oneTimeKey must be a number in 0-999 range");
+    }
+
+    parsedKey = parsedKey < 100 ? parsedKey + 100 : parsedKey;
+    const initialShuffle = Math.abs(99 - (parsedKey % 100));
+    const iterationShuffle = Math.floor(parsedKey / 100);
+
+    return [initialShuffle, iterationShuffle];
+  }
+
+  public encodeMessage(oneTimeKey: MaxThreeDigitsNumber, message: string) {
+    const [initialShuffle, iterationShuffle] = this.getShuffles(oneTimeKey);
+    let shuffledArray = shuffleArray(this.encodedArray, initialShuffle);
+
+    const encodedMessage = message.split("").map((char) => {
+      const index = this.codesArray.indexOf(char);
+
+      if (indexNotFound(index)) {
+        return char;
+      }
+
+      const storedValueBeforeShuffling = shuffledArray[index];
+      if (char === splitter) {
+        shuffledArray = shuffleArray(shuffledArray, iterationShuffle);
+      }
+
+      return storedValueBeforeShuffling;
+    });
+
+    return encodedMessage.join("");
+  }
+
+  public decodeMessage(oneTimeKey: MaxThreeDigitsNumber, message: string) {
+    const [initialShuffle, iterationShuffle] = this.getShuffles(oneTimeKey);
+    let shuffledArray = shuffleArray(this.encodedArray, initialShuffle);
+
+    const decodedMessage = message.split("").map((char) => {
+      const index = shuffledArray.indexOf(char);
+
+      if (indexNotFound(index)) {
+        return char;
+      }
+
+      let decodedChar = this.codesArray[index];
+
+      if (decodedChar === splitter) {
+        shuffledArray = shuffleArray(shuffledArray, iterationShuffle);
+      }
+
+      return decodedChar;
+    });
+
+    return decodedMessage.join("");
+  }
 }
 
-let secretKey = parseInt(process.env.SECRET_KEY!);
-secretKey = secretKey < 100 ? secretKey + 100 : secretKey;
-
-if (secretKey >= 1000 || secretKey < 0) {
-  throw new Error("SECRET_KEY must be in 0-999 range");
-}
-
-const initialShuffle = Math.abs(99 - (secretKey % 100));
-const iterationShuffle = Math.floor(secretKey / 100);
-
-const encodedArray =
-  process.env.ENCODED_ARRAY.split("=").map(mapForbiddenChars);
-
-const codeMessage = (message: string) => {
-  let shuffledArray = shuffleArray(encodedArray, initialShuffle);
-
-  const encodedMessage = message.split("").map((char) => {
-    const index = codesArray.indexOf(char);
-
-    if (indexNotFound(index)) {
-      return char;
-    }
-
-    const storedValueBeforeShuffling = shuffledArray[index];
-    if (char === splitter) {
-      shuffledArray = shuffleArray(shuffledArray, iterationShuffle);
-    }
-
-    return storedValueBeforeShuffling;
-  });
-
-  return encodedMessage.join("");
-};
-
-const decodeMessage = (message: string) => {
-  let shuffledArray = shuffleArray(encodedArray, initialShuffle);
-
-  const decodedMessage = message.split("").map((char) => {
-    const index = shuffledArray.indexOf(char);
-
-    if (indexNotFound(index)) {
-      return char;
-    }
-
-    let decodedChar = codesArray[Math.abs(index)];
-
-    if (decodedChar === splitter) {
-      shuffledArray = shuffleArray(shuffledArray, iterationShuffle);
-    }
-
-    return decodedChar;
-  });
-
-  return decodedMessage.join("");
-};
-
-// const test = "T T T T";
-const test =
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam tincidunt, neque eu posuere pretium, urna augue interdum enim, sed vehicula eros nisi eget lacus. Donec vitae tellus placerat, accumsan nisi ut, malesuada ex. Suspendisse aliquet, tellus eget elementum mollis, orci urna semper ex, eu viverra est libero quis elit. Donec ut tellus quis libero posuere bibendum. Pellentesque semper maximus sagittis. Donec elementum, arcu et pulvinar hendrerit, ex lectus pulvinar turpis, non posuere orci purus et mauris. Proin maximus ex vel rhoncus viverra. Nullam nec ligula porta, venenatis leo id, dapibus nisi";
-
-const codedTest = codeMessage(test);
-
-console.log(
-  codedTest,
-  decodeMessage(codedTest),
-  decodeMessage(codedTest) === test
-);
+export default EncryptionMachine;

@@ -4,15 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node index.ts",
+    "build": "tsc"
   },
   "author": "Tomasz Wirkus",
-  "license": "ISC",
-  "dependencies": {
-    "dotenv": "^16.0.3"
-  },
-  "devDependencies": {
-    "@types/dotenv": "^8.2.0",
-    "@types/node": "^20.2.3"
-  }
+  "license": "ISC"
 }
