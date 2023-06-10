@@ -5,7 +5,9 @@ export const mapForbiddenChars = (char: string) => {
   if (char === "apostrophe") {
     return "'";
   }
-
+  if (char === "dollar") {
+    return "$";
+  }
   if (char === "quote") {
     return '"';
   }
